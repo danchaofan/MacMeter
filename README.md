@@ -1,16 +1,25 @@
 # MacMeter
 
-原生 macOS 菜单栏 CPU、内存、网速和电池监控工具。macOS 13 Ventura 或更新版本，无第三方依赖，不发起网络请求，不需要管理员权限。
+原生 macOS 菜单栏 CPU、内存、网速和电池监控工具。macOS 13 Ventura 或更新版本，无第三方依赖，不发起网络请求，应用运行无需管理员权限。
 
 当前应用显示名称为「资源看板」，源码版本为 1.2.1。
 
-## 运行
+## 安装与运行
 
-下载发布包后解压，双击 `资源看板.app`；从源码构建的应用位于 `dist/资源看板.app`。顶部菜单栏出现波形图标和 CPU / MEM 百分比。左键展开四卡看板，右键显示快捷菜单。应用不在 Dock 中常驻。
+1. 下载 [MacMeter 1.2.1 通用安装包](https://github.com/danchaofan/MacMeter/raw/refs/heads/main/installers/MacMeter-1.2.1-universal.pkg)，支持 Intel 和 Apple 芯片。
+2. 如已运行旧版，先在菜单栏右键菜单中选择“退出资源看板”。
+3. 双击 `.pkg`，按照 macOS 安装器提示完成安装；系统可能要求管理员密码。
+4. 从“应用程序”打开“资源看板”。点击顶部菜单栏的波形图标即可展开四卡看板，右键显示快捷菜单；应用不在 Dock 中常驻。
+
+安装位置为 `/Applications/资源看板.app`，升级会保留原有偏好设置。安装器不附加安装脚本，不自动启动应用，也不自动开启登录启动或通知。
+
+当前安装包未使用 Developer ID Installer 签名，应用采用本地 ad-hoc 签名，尚未经过 Apple 公证。首次打开若被 macOS 拦截，可在“系统设置 → 隐私与安全性”中核对来源后选择“仍要打开”。
+
+安装包同时保存在仓库的 [installers](installers) 目录；[SHA-256 校验文件](installers/MacMeter-1.2.1-universal.pkg.sha256) 可用于核对下载完整性。
 
 面板关闭后再次点击菜单栏入口，会从首页打开；实时采样与历史数据继续保留。
 
-如需开机启动，建议先把 `.app` 移到「应用程序」文件夹，然后在设置中开启「登录时启动」。系统要求批准时，点击界面中的系统设置入口完成。
+如需开机启动，在看板设置中开启「登录时启动」。系统要求批准时，点击界面中的系统设置入口完成。
 
 ## 功能
 
@@ -58,13 +67,33 @@ RB_ARCH=x86_64 RB_OUTPUT_DIR=dist-intel bash scripts/build.sh
 
 直接构建双架构通用版：`bash scripts/build-universal.sh`。
 
-本地包使用 ad-hoc 签名，未做 Apple 开发者签名和公证，适合本机使用；分发给其他 Mac 前应使用 Developer ID 签名并公证。
+构建原生 macOS 安装包：
+
+```bash
+bash scripts/package.sh
+```
+
+默认先构建通用应用，再输出 `installers/MacMeter-1.2.1-universal.pkg` 及其 `.sha256` 校验文件。使用已构建的、版本匹配的通用应用打包：
+
+```bash
+RB_APP_PATH="$PWD/dist/资源看板.app" bash scripts/package.sh
+```
+
+打包时会清除本机文件属主信息，并自动验证安装位置、双架构、应用签名、负载文件清单与敏感路径。也可单独检查安装包（不执行安装）：
+
+```bash
+python3 scripts/verify-package.py installers/MacMeter-1.2.1-universal.pkg
+```
+
+从源码构建的应用位于 `dist/资源看板.app`。构建需要 Xcode Command Line Tools 及 Python 3；下载安装包运行应用不需要这些工具。
+
+公开分发的正式版本建议使用 Developer ID Application / Installer 证书签名并完成 Apple 公证。
 
 ## 隐私与本地数据
 
 应用在本机读取资源占用、当前用户可读取的应用进程信息、物理网卡字节计数和电池指标，不上传数据、不访问网络服务，也不采集设备序列号。实时数据和短期趋势保存在内存；显示偏好、刷新频率和提醒开关保存在系统 UserDefaults 中。
 
-只有显式运行 `--smoke-test` 时，才会向指定目录写入诊断报告与界面截图。这些文件可能包含正在运行的应用名称、进程 PID、安装路径、资源占用及电池信息，发布前应单独检查。仓库仅包含源码、文档和构建脚本，不包含这些实机诊断、截图、安装包或本机设置；测试数据使用合成样例。
+只有显式运行 `--smoke-test` 时，才会向指定目录写入诊断报告与界面截图。这些文件可能包含正在运行的应用名称、进程 PID、安装路径、资源占用及电池信息，发布前应单独检查。仓库包含源码、文档、构建脚本和经过检查的安装包，不包含实机诊断、截图或本机设置；测试数据使用合成样例。
 
 ## 验证
 

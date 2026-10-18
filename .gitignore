@@ -11,6 +11,7 @@ smoke*/
 *.zip
 *.dmg
 *.pkg
+!installers/MacMeter-*-universal.pkg
 *.log
 *.ips
 smoke-report.json
